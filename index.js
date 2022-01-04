@@ -69,23 +69,23 @@ function init() {
   }
 }
 
-function getOrgData(data) {
+function getOrgData(selected) {
   $.ajax({
-    url: 'https://orgbook.gov.bc.ca/api/v3/search/topic',
+    url: 'https://orgbook.gov.bc.ca/api/v4/search/topic',
     data: {
-      name: data.topic_source_id,
+      q: selected.topic_source_id,
     },
     beforeSend: function () {
       disableFields();
     },
   })
     .done(function (response) {
-      var credential =
+      var topic =
         response.total &&
-        response.results.find(function (result) {
-          return result.topic.source_id === data.topic_source_id;
+        response.results.find(function (_topic) {
+          return _topic.source_id === selected.topic_source_id;
         });
-      populateFields(credential);
+      populateFields(topic);
     })
     .fail(function (e) {
       console.error('Unable to get organization data', e);
@@ -95,23 +95,21 @@ function getOrgData(data) {
     });
 }
 
-function populateFields(credential) {
-  if (!credential) return;
+function populateFields(topic) {
+  if (!topic) return;
 
   const orgTypeInput = fields.find('type');
   const orgRegistryNumberInput = fields.find('registryNumber');
 
   if (orgTypeInput) {
-    var orgTypeAttribute = credential.topic.attributes.find(function (
-      attribute
-    ) {
+    var orgTypeAttribute = topic.attributes.find(function (attribute) {
       return attribute.type === 'entity_type';
     });
     orgTypeInput.value = types[orgTypeAttribute.value];
   }
 
   if (orgRegistryNumberInput) {
-    orgRegistryNumberInput.value = credential.topic.source_id;
+    orgRegistryNumberInput.value = topic.source_id;
   }
 }
 
